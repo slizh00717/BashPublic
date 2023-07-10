@@ -88,8 +88,16 @@ backup_database() {
     MysqlDumpSetting=$(cat $DATABASES_SETTINGS | grep "true" | awk '{print $1}')
     for DB in $MysqlDumpSetting; do
         if [ "$DB" = "PERCONA" ]; then #Percona xtrabackup
-            MySQLUser=$(cat /root/.my.cnf | grep "user" | awk {'print $2'})
-            MySQLUserPassword=$(cat /root/.my.cnf | grep "password" | awk {'print $2'})
+            FindUserDatabase=$(cat /root/.my.cnf | grep "user" | sed 's/ //g')
+            FindPasswordDatabase=$(cat /root/.my.cnf | grep "password" | sed 's/ //g')
+
+            MySQLUser=${FindUserDatabase##*=}
+            MySQLUser=${MySQLUser#*\'} #Deletes the character ' if this character is the first
+            MySQLUser=${MySQLUser%\'*} #Deletes the character ' if this character is the last one
+
+            MySQLUserPassword=${FindPasswordDatabase##*=}
+            MySQLUserPassword=${MySQLUserPassword#*\'}
+            MySQLUserPassword=${MySQLUserPassword%\'*}
             if test -z "$MySQLUser"; then
                 echo "Empty string(User Name)!"
                 exit
@@ -115,8 +123,16 @@ backup_database() {
                 echo "ERROR: There is not enough disk to create a database dump!" >>$BACKUP_LOG 2>&1
             fi
         elif [ "$DB" = "MYSQLDUMP" ]; then #MySQLDump
-            MySQLUser=$(cat /root/.my.cnf | grep "user" | awk {'print $2'})
-            MySQLUserPassword=$(cat /root/.my.cnf | grep "password" | awk {'print $2'})
+            FindUserDatabase=$(cat /root/.my.cnf | grep "user" | sed 's/ //g')
+            FindPasswordDatabase=$(cat /root/.my.cnf | grep "password" | sed 's/ //g')
+
+            MySQLUser=${FindUserDatabase##*=}
+            MySQLUser=${MySQLUser#*\'} #Deletes the character ' if this character is the first
+            MySQLUser=${MySQLUser%\'*} #Deletes the character ' if this character is the last one
+
+            MySQLUserPassword=${FindPasswordDatabase##*=}
+            MySQLUserPassword=${MySQLUserPassword#*\'}
+            MySQLUserPassword=${MySQLUserPassword%\'*}
             if test -z "$MySQLUser"; then
                 echo "Empty string(User Name)!"
                 exit
